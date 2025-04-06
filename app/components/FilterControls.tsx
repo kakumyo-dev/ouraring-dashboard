@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Employee } from '../data/mockData';
 
 type FilterControlsProps = {
@@ -21,6 +21,16 @@ const FilterControls = ({ employees, onFilterChange }: FilterControlsProps) => {
     const [weightRange, setWeightRange] = useState<[number, number]>([50, 100]);
     const [startDate, setStartDate] = useState<string>('');
     const [endDate, setEndDate] = useState<string>('');
+
+    // Set default end date to today
+    const defaultEndDate = new Date().toISOString().split('T')[0];
+
+    // Set end date to today if not already set
+    useEffect(() => {
+        if (!endDate) {
+            setEndDate(defaultEndDate);
+        }
+    }, []);
 
     // Min and max values for sliders
     const ageMin = 20;
@@ -61,12 +71,15 @@ const FilterControls = ({ employees, onFilterChange }: FilterControlsProps) => {
     };
 
     const handleFilterChange = () => {
+        // For logging purposes
+        console.log("Applying filters with date range:", startDate ? [startDate, endDate || defaultEndDate] : undefined);
+
         onFilterChange({
             gender: gender || undefined,
             ageRange: ageRange,
             heightRange: heightRange,
             weightRange: weightRange,
-            dateRange: startDate && endDate ? [startDate, endDate] : undefined
+            dateRange: startDate ? [startDate, endDate || defaultEndDate] : undefined
         });
     };
 
@@ -190,15 +203,15 @@ const FilterControls = ({ employees, onFilterChange }: FilterControlsProps) => {
                         className="w-full border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                     />
                 </div>
-            </div>
 
-            <div className="mt-4">
-                <button
-                    onClick={handleFilterChange}
-                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded"
-                >
-                    Apply Filters
-                </button>
+                <div className="lg:col-span-2 flex items-end">
+                    <button
+                        onClick={handleFilterChange}
+                        className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded"
+                    >
+                        Apply Filters
+                    </button>
+                </div>
             </div>
         </div>
     );

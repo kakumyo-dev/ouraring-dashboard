@@ -83,7 +83,7 @@ const EmployeeAverageComparisonChart = ({ data, title, period }: EmployeeAverage
                             dataKey="average"
                             stroke="#8884d8"
                             activeDot={{ r: 8 }}
-                            name={`Average Sleep by ${period === 'week' ? 'Week' : period === 'month' ? 'Month' : 'All Time'}`}
+                            name={`Average Sleep`}
                         />
                     </LineChart>
                 </ResponsiveContainer>

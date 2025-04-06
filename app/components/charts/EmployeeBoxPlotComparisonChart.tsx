@@ -159,7 +159,7 @@ const EmployeeBoxPlotComparisonChart = ({ data, title, period }: EmployeeBoxPlot
                         {/* Use Bar to render custom box plots */}
                         <Bar
                             dataKey="max"
-                            name={`Sleep Distribution by ${period === 'week' ? 'Week' : period === 'month' ? 'Month' : 'All Time'}`}
+                            name={`Sleep Distribution`}
                             shape={(props: any) => {
                                 // Use type assertion to safely access the payload
                                 const payload = props.payload as { employeeId: number };

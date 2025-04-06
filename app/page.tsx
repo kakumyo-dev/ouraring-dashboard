@@ -106,9 +106,43 @@ export default function Home() {
     // Filter by date range if specified
     if (filters.dateRange) {
       const [startDate, endDate] = filters.dateRange;
-      newFilteredSleepData = newFilteredSleepData.filter(item =>
-        item.date >= startDate && item.date <= endDate
-      );
+      console.log("Date range filter:", { startDate, endDate });
+
+      // Only apply date filtering if start date is specified
+      if (startDate) {
+        console.log("Applying start date filter:", startDate);
+        newFilteredSleepData = newFilteredSleepData.filter(item => {
+          const itemDate = new Date(item.date);
+
+          // Set hours to 0 to compare only dates
+          itemDate.setHours(0, 0, 0, 0);
+
+          // Check start date
+          const startDateObj = new Date(startDate);
+          startDateObj.setHours(0, 0, 0, 0);
+
+          if (itemDate < startDateObj) {
+            return false;
+          }
+
+          // Only check end date if it's provided
+          if (endDate) {
+            const endDateObj = new Date(endDate);
+            endDateObj.setHours(0, 0, 0, 0);
+
+            if (itemDate > endDateObj) {
+              return false;
+            }
+          }
+
+          return true;
+        });
+        console.log("After date filtering:", newFilteredSleepData.length, "data points");
+      } else {
+        console.log("No start date specified, skipping date filtering");
+      }
+    } else {
+      console.log("No date range filter applied");
     }
 
     setFilteredEmployees(newFilteredEmployees);
