@@ -12,7 +12,9 @@ import {
     employees,
     getEmployeeSleepStatsByPeriod,
     SleepData,
-    Employee
+    Employee,
+    sleepData,
+    getEmployeeSleepData
 } from '../data/mockData';
 
 // Function to calculate quartiles for an array of values
@@ -54,27 +56,48 @@ export default function IndividualPage() {
     const [comparativeAverageData, setComparativeAverageData] = useState<any[]>([]);
     const [comparativeBoxPlotData, setComparativeBoxPlotData] = useState<any[]>([]);
     const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>(employees);
+    const [dateRange, setDateRange] = useState<[string, string] | undefined>(undefined);
 
     // Get stats for all employees for the scatter plot and new comparison charts
     useEffect(() => {
         const allEmployeeStats = filteredEmployees.map(emp => {
-            const stats = getEmployeeSleepStatsByPeriod(emp.id, 'all');
+            // Get employee sleep data
+            let employeeData = getEmployeeSleepData(emp.id);
 
-            // Calculate average of averages and variance of variances
-            const avgSum = stats.reduce((sum, stat) => sum + stat.average, 0);
-            const avgAvg = stats.length > 0 ? avgSum / stats.length : 0;
+            // Filter by date range if specified
+            if (dateRange && dateRange[0]) {
+                const [startDate, endDate] = dateRange;
+                const startDateObj = new Date(startDate);
+                const endDateObj = endDate ? new Date(endDate) : new Date();
 
-            const varSum = stats.reduce((sum, stat) => sum + stat.variance, 0);
-            const avgVar = stats.length > 0 ? varSum / stats.length : 0;
+                // Reset hours for comparison
+                startDateObj.setHours(0, 0, 0, 0);
+                endDateObj.setHours(23, 59, 59, 999);
 
-            // Get all durations for box plot
-            const allDurations = stats.flatMap(stat =>
-                Array(stat.count).fill(0).map((_, i) =>
-                    (i / stat.count) * (stat.max - stat.min) + stat.min
-                )
-            );
+                // Filter data by date range
+                employeeData = employeeData.filter(item => {
+                    const itemDate = new Date(item.date);
+                    itemDate.setHours(0, 0, 0, 0);
+                    return itemDate >= startDateObj && itemDate <= endDateObj;
+                });
+            }
 
-            const quartiles = calculateQuartiles(allDurations);
+            // Skip if no data in range
+            if (employeeData.length === 0) {
+                return null;
+            }
+
+            // Calculate average sleep duration
+            const sleepDurations = employeeData.map(item => item.duration);
+            const sum = sleepDurations.reduce((a, b) => a + b, 0);
+            const avgAvg = sleepDurations.length > 0 ? sum / sleepDurations.length : 0;
+
+            // Calculate variance
+            const mean = avgAvg;
+            const variance = sleepDurations.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / sleepDurations.length;
+
+            // Calculate quartiles for box plot
+            const quartiles = calculateQuartiles(sleepDurations);
 
             return {
                 employeeId: emp.id,
@@ -85,15 +108,15 @@ export default function IndividualPage() {
                 height: emp.height,
                 weight: emp.weight,
                 average: avgAvg,
-                variance: avgVar,
-                count: stats.reduce((sum, stat) => sum + stat.count, 0),
+                variance: variance,
+                count: sleepDurations.length,
                 min: quartiles.min,
                 q1: quartiles.q1,
                 median: quartiles.median,
                 q3: quartiles.q3,
                 max: quartiles.max
             };
-        });
+        }).filter(stat => stat !== null); // Remove null entries (employees with no data in range)
 
         // Update scatter data
         setScatterData(allEmployeeStats.map(stat => ({
@@ -104,7 +127,7 @@ export default function IndividualPage() {
         // Update comparative charts data
         setComparativeAverageData(allEmployeeStats);
         setComparativeBoxPlotData(allEmployeeStats);
-    }, [filteredEmployees]);
+    }, [filteredEmployees, dateRange]);
 
     // Handle employee selection
     const handleEmployeeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -180,7 +203,10 @@ export default function IndividualPage() {
 
         console.log("After attribute filtering:", newFilteredEmployees.length, "employees");
 
-        // Reset to all employees if we're removing a previously applied filter
+        // Store the date range for filtering
+        setDateRange(filters.dateRange);
+
+        // Set filtered employees for attribute filtering
         setFilteredEmployees(newFilteredEmployees);
     };
 
