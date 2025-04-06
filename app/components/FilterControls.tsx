@@ -16,9 +16,9 @@ type FilterControlsProps = {
 
 const FilterControls = ({ employees, onFilterChange }: FilterControlsProps) => {
     const [gender, setGender] = useState<string>('');
-    const [ageRange, setAgeRange] = useState<[number, number]>([20, 60]);
-    const [heightRange, setHeightRange] = useState<[number, number]>([150, 190]);
-    const [weightRange, setWeightRange] = useState<[number, number]>([50, 100]);
+    const [ageRange, setAgeRange] = useState<[number, number]>([20, 70]);
+    const [heightRange, setHeightRange] = useState<[number, number]>([140, 200]);
+    const [weightRange, setWeightRange] = useState<[number, number]>([40, 120]);
     const [startDate, setStartDate] = useState<string>('');
     const [endDate, setEndDate] = useState<string>('');
 
