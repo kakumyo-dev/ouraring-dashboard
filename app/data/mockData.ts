@@ -1,4 +1,13 @@
-// Employee data type
+/**
+ * モックデータ生成モジュール
+ * 
+ * このファイルは以下の機能を提供します：
+ * 1. 従業員データと睡眠データの型定義
+ * 2. 決定論的なモックデータの生成（再現性のあるランダムデータ）
+ * 3. データ集計・分析のためのユーティリティ関数
+ */
+
+// 従業員データの型定義
 export type Employee = {
   id: number;
   name: string;
@@ -20,7 +29,10 @@ export type SleepData = {
   lightSleepPercentage: number;
 };
 
-// Simple deterministic random function with seed
+/**
+ * シード値を使用した決定論的な乱数生成関数
+ * 同じシード値からは常に同じ乱数列が生成されるため、テストやデモに適している
+ */
 function seededRandom(seed: number): () => number {
   return function() {
     // Simple LCG algorithm
@@ -29,14 +41,17 @@ function seededRandom(seed: number): () => number {
   };
 }
 
-// Create a seeded random generator
+// シード値12345で乱数ジェネレータを初期化
 const random = seededRandom(12345);
 
 // Fixed departments and genders to ensure consistency
 const departments = ['Engineering', 'Marketing', 'Sales', 'HR', 'Finance'];
 const genders = ['male', 'female', 'other'] as const;
 
-// Generate fixed employees
+/**
+ * 従業員データの生成
+ * 50人の従業員データを決定論的に生成
+ */
 export const employees: Employee[] = Array.from({ length: 50 }, (_, index) => {
   const gender = genders[index % 2]; // Alternate between first two genders
   // Generate height based on gender (slightly different distributions)
@@ -60,13 +75,17 @@ export const employees: Employee[] = Array.from({ length: 50 }, (_, index) => {
   };
 });
 
-// Generate deterministic sleep data for the past 30 days
+/**
+ * 過去30日間の睡眠データの生成
+ * 一貫性を保つため固定された日付を使用（2023-11-30から2023-12-30）
+ */
 const today = new Date("2023-12-30"); // Fixed date to ensure consistency
 const thirtyDaysAgo = new Date(today);
 thirtyDaysAgo.setDate(today.getDate() - 30);
 
 export const sleepData: SleepData[] = [];
 
+// 各従業員について30日分のデータを生成
 employees.forEach(employee => {
   for (let i = 0; i < 30; i++) {
     const date = new Date(thirtyDaysAgo);
@@ -79,7 +98,7 @@ employees.forEach(employee => {
     const noise = (randomValue - 0.5) * variation;
     const duration = Math.max(4, Math.min(10, baseDuration + noise));
     
-    // More likely to have good sleep on weekends - but still deterministic
+    // 週末はより良い睡眠効率になりやすい（ただし依然として決定論的）
     const isWeekend = date.getDay() === 0 || date.getDay() === 6;
     const efficiencyBase = isWeekend ? 85 : 80;
     const efficiency = Math.min(98, Math.max(60, efficiencyBase + (random() - 0.5) * 20));
@@ -101,7 +120,10 @@ employees.forEach(employee => {
   }
 });
 
-// Utility functions to calculate statistics
+/**
+ * 日付ごとの平均睡眠時間を計算するユーティリティ関数
+ * 全従業員の平均睡眠時間を日付ごとに集計
+ */
 export const getAverageSleepByDate = () => {
   const result: { date: string, average: number }[] = [];
   
@@ -127,14 +149,30 @@ export const getAverageSleepByDate = () => {
   return result.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
 };
 
+/**
+ * 特定の日付の睡眠時間分布を取得する関数
+ * @param date 日付文字列（YYYY-MM-DD形式）
+ * @returns 指定日の全従業員の睡眠時間の配列
+ */
 export const getSleepDistributionByDate = (date: string) => {
   return sleepData.filter(item => item.date === date).map(item => item.duration);
 };
 
+/**
+ * 特定の従業員の睡眠データを取得する関数
+ * @param employeeId 従業員ID
+ * @returns 指定従業員の睡眠データの配列
+ */
 export const getEmployeeSleepData = (employeeId: number) => {
   return sleepData.filter(item => item.employeeId === employeeId);
 };
 
+/**
+ * 特定の従業員の期間別睡眠統計データを取得する関数
+ * @param employeeId 従業員ID
+ * @param period 期間指定（'week' | 'month' | 'all'）
+ * @returns 期間ごとの睡眠統計データ（平均、分散、最小値、最大値など）
+ */
 export const getEmployeeSleepStatsByPeriod = (employeeId: number, period: 'week' | 'month' | 'all') => {
   const data = getEmployeeSleepData(employeeId);
   

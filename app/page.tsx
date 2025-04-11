@@ -1,5 +1,14 @@
 'use client';
 
+/**
+ * メインダッシュボードページコンポーネント
+ * 
+ * 主な機能:
+ * 1. 全従業員の睡眠データの概要表示
+ * 2. フィルター機能による特定条件の従業員データ表示
+ * 3. 平均睡眠時間・睡眠時間分布・ヒストグラムの可視化
+ */
+
 import { useState, useEffect } from 'react';
 import FilterControls from './components/FilterControls';
 import AverageSleepLineChart from './components/charts/AverageSleepLineChart';
@@ -15,14 +24,17 @@ import {
   Employee
 } from './data/mockData';
 
-// Function to prepare data for box plot
+/**
+ * 箱ひげ図用のデータを準備する関数
+ * 日付ごとの睡眠時間データをグループ化
+ */
 const prepareSleepDistributionByDate = () => {
   const result: { date: string; durations: number[] }[] = [];
 
-  // Get unique dates
+  // ユニークな日付の取得
   const uniqueDates = [...new Set(sleepData.map(item => item.date))];
 
-  // For each date, get all durations
+  // 各日付ごとに睡眠時間データを集計
   uniqueDates.forEach(date => {
     const durations = sleepData
       .filter(item => item.date === date)
@@ -38,14 +50,19 @@ const prepareSleepDistributionByDate = () => {
 };
 
 export default function Home() {
-  const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>(employees);
-  const [filteredSleepData, setFilteredSleepData] = useState<SleepData[]>(sleepData);
-  const [averageSleepData, setAverageSleepData] = useState(getAverageSleepByDate());
-  const [boxPlotData, setBoxPlotData] = useState<any[]>([]);
-  const [histogramData, setHistogramData] = useState<number[]>([]);
+  // =========== 状態管理（State） ===========
+  const [filteredEmployees, setFilteredEmployees] = useState<Employee[]>(employees); // フィルタリングされた従業員リスト
+  const [filteredSleepData, setFilteredSleepData] = useState<SleepData[]>(sleepData); // フィルタリングされた睡眠データ
+  const [averageSleepData, setAverageSleepData] = useState(getAverageSleepByDate()); // 平均睡眠時間データ
+  const [boxPlotData, setBoxPlotData] = useState<any[]>([]); // 箱ひげ図データ
+  const [histogramData, setHistogramData] = useState<number[]>([]); // ヒストグラムデータ
 
+  /**
+   * 初期データ準備用のエフェクト
+   * コンポーネントのマウント時に一度だけ実行される
+   */
   useEffect(() => {
-    // Initial data preparation
+    // 箱ひげ図データの準備
     const boxPlotDataRaw = prepareSleepDistributionByDate();
     import('./components/charts/SleepBoxPlotChart')
       .then(module => {
@@ -53,11 +70,14 @@ export default function Home() {
         setBoxPlotData(preparedData);
       });
 
-    // Histogram data (all sleep durations)
+    // ヒストグラムデータの準備（全睡眠時間）
     setHistogramData(sleepData.map(item => item.duration));
   }, []);
 
-  // Function to handle filter changes
+  /**
+   * フィルター変更時の処理
+   * フィルター条件に基づいて従業員データと睡眠データを更新する
+   */
   const handleFilterChange = (filters: {
     gender?: string;
     ageRange?: [number, number];
@@ -65,15 +85,17 @@ export default function Home() {
     weightRange?: [number, number];
     dateRange?: [string, string];
   }) => {
-    // Filter employees
+    // 従業員データのフィルタリング
     let newFilteredEmployees = [...employees];
 
+    // 性別フィルター
     if (filters.gender) {
       newFilteredEmployees = newFilteredEmployees.filter(
         emp => emp.gender === filters.gender
       );
     }
 
+    // 年齢範囲フィルター
     if (filters.ageRange) {
       const [minAge, maxAge] = filters.ageRange;
       newFilteredEmployees = newFilteredEmployees.filter(
@@ -81,6 +103,7 @@ export default function Home() {
       );
     }
 
+    // 身長範囲フィルター
     if (filters.heightRange) {
       const [minHeight, maxHeight] = filters.heightRange;
       newFilteredEmployees = newFilteredEmployees.filter(
@@ -88,6 +111,7 @@ export default function Home() {
       );
     }
 
+    // 体重範囲フィルター
     if (filters.weightRange) {
       const [minWeight, maxWeight] = filters.weightRange;
       newFilteredEmployees = newFilteredEmployees.filter(
@@ -95,29 +119,29 @@ export default function Home() {
       );
     }
 
-    // Get employee IDs for filtering sleep data
+    // フィルタリングされた従業員IDの取得
     const employeeIds = newFilteredEmployees.map(emp => emp.id);
 
-    // Filter sleep data
+    // 睡眠データのフィルタリング（従業員IDに基づく）
     let newFilteredSleepData = sleepData.filter(item =>
       employeeIds.includes(item.employeeId)
     );
 
-    // Filter by date range if specified
+    // 日付範囲によるフィルタリング
     if (filters.dateRange) {
       const [startDate, endDate] = filters.dateRange;
-      console.log("Date range filter:", { startDate, endDate });
+      console.log("日付範囲フィルター:", { startDate, endDate });
 
-      // Only apply date filtering if start date is specified
+      // 開始日が指定されている場合のみ日付フィルタリングを適用
       if (startDate) {
-        console.log("Applying start date filter:", startDate);
+        console.log("開始日フィルターを適用:", startDate);
         newFilteredSleepData = newFilteredSleepData.filter(item => {
           const itemDate = new Date(item.date);
 
-          // Set hours to 0 to compare only dates
+          // 時間を0にセットして日付のみで比較
           itemDate.setHours(0, 0, 0, 0);
 
-          // Check start date
+          // 開始日のチェック
           const startDateObj = new Date(startDate);
           startDateObj.setHours(0, 0, 0, 0);
 
@@ -125,7 +149,7 @@ export default function Home() {
             return false;
           }
 
-          // Only check end date if it's provided
+          // 終了日が指定されている場合のみ終了日のチェック
           if (endDate) {
             const endDateObj = new Date(endDate);
             endDateObj.setHours(0, 0, 0, 0);
@@ -137,20 +161,21 @@ export default function Home() {
 
           return true;
         });
-        console.log("After date filtering:", newFilteredSleepData.length, "data points");
+        console.log("日付フィルタリング後:", newFilteredSleepData.length, "データポイント");
       } else {
-        console.log("No start date specified, skipping date filtering");
+        console.log("開始日が指定されていないため、日付フィルタリングをスキップ");
       }
     } else {
-      console.log("No date range filter applied");
+      console.log("日付範囲フィルターが適用されていません");
     }
 
+    // フィルタリングされたデータを状態に設定
     setFilteredEmployees(newFilteredEmployees);
     setFilteredSleepData(newFilteredSleepData);
 
-    // Recalculate chart data with filtered data
+    // =========== フィルタリングされたデータでチャートデータを再計算 ===========
 
-    // Average sleep line chart
+    // 平均睡眠時間ラインチャート用データの計算
     const dateGroups = newFilteredSleepData.reduce((groups, item) => {
       if (!groups[item.date]) {
         groups[item.date] = [];
@@ -159,17 +184,18 @@ export default function Home() {
       return groups;
     }, {} as Record<string, number[]>);
 
+    // 日付ごとの平均睡眠時間を計算
     const newAverageSleepData = Object.entries(dateGroups).map(([date, durations]) => {
       const sum = durations.reduce((a, b) => a + b, 0);
       return {
         date,
         average: sum / durations.length
       };
-    }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    }).sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()); // 日付順にソート
 
     setAverageSleepData(newAverageSleepData);
 
-    // Box plot data
+    // 箱ひげ図用データの更新
     const boxPlotDataRaw = Object.entries(dateGroups).map(([date, durations]) => ({
       date,
       durations
@@ -181,15 +207,18 @@ export default function Home() {
         setBoxPlotData(preparedData);
       });
 
-    // Histogram data
+    // ヒストグラム用データの更新
     setHistogramData(newFilteredSleepData.map(item => item.duration));
   };
 
   return (
     <ClientOnlyWrapper>
       <div className="space-y-6">
+        {/* =========== タイトル =========== */}
+        <h2 className="text-xl font-semibold mb-4 text-black">Comparative Analysis Across Days</h2>
+        {/* =========== フィルターコントロールセクション =========== */}
         <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4 text-black">All Employees Sleep Dashboard</h2>
+          <h2 className="text-xl font-semibold mb-4 text-black">Filter Comparative Analysis</h2>
 
           <FilterControls
             employees={employees}
@@ -197,12 +226,15 @@ export default function Home() {
           />
         </div>
 
+        {/* =========== チャート表示セクション =========== */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* 平均睡眠時間チャート */}
           <AverageSleepLineChart
             data={averageSleepData}
-            title="Average Sleep Duration (All Employees)"
+            title="Average Sleep Duration by Date"
           />
 
+          {/* 睡眠時間分布チャート（箱ひげ図） */}
           <SleepBoxPlotChart
             data={boxPlotData}
             title="Sleep Duration Distribution by Date"
@@ -210,6 +242,7 @@ export default function Home() {
         </div>
 
         <div>
+          {/* 睡眠時間分布チャート（ヒストグラム） */}
           <SleepHistogramChart
             data={histogramData}
             title="Sleep Duration Distribution (Histogram)"

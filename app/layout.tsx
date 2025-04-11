@@ -24,11 +24,13 @@ export default function RootLayout({
               <h1 className="text-3xl font-bold text-gray-900">
                 Oura Ring Employee Health Dashboard
               </h1>
+              {/* Tab navigation for different sections of the dashboard */}
               <div className="mt-4">
                 <TabNavigator />
               </div>
             </div>
           </header>
+          {/* Main content area where page-specific content is rendered */}
           <main>
             <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
               {children}

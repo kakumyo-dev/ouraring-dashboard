@@ -1,38 +1,53 @@
 'use client';
 
+/**
+ * フィルターコントロールコンポーネント
+ * 
+ * 主な機能:
+ * 1. 性別、年齢、身長、体重、日付範囲によるデータフィルタリング
+ * 2. スライダーコントロールによる範囲選択
+ * 3. フィルター適用ボタンによるデータ更新
+ */
+
 import { useState, useEffect } from 'react';
 import { Employee } from '../data/mockData';
 
+/**
+ * フィルターコントロールのプロパティ型定義
+ */
 type FilterControlsProps = {
-    employees: Employee[];
-    onFilterChange: (filters: {
-        gender?: string;
-        ageRange?: [number, number];
-        heightRange?: [number, number];
-        weightRange?: [number, number];
-        dateRange?: [string, string];
+    employees: Employee[];         // フィルタリング対象の従業員データ配列
+    onFilterChange: (filters: {    // フィルター変更時のコールバック関数
+        gender?: string;           // 性別フィルター
+        ageRange?: [number, number]; // 年齢範囲
+        heightRange?: [number, number]; // 身長範囲
+        weightRange?: [number, number]; // 体重範囲
+        dateRange?: [string, string];   // 日付範囲
     }) => void;
 };
 
 const FilterControls = ({ employees, onFilterChange }: FilterControlsProps) => {
-    const [gender, setGender] = useState<string>('');
-    const [ageRange, setAgeRange] = useState<[number, number]>([20, 70]);
-    const [heightRange, setHeightRange] = useState<[number, number]>([140, 200]);
-    const [weightRange, setWeightRange] = useState<[number, number]>([40, 120]);
-    const [startDate, setStartDate] = useState<string>('');
-    const [endDate, setEndDate] = useState<string>('');
+    // =========== 状態管理（State） ===========
+    const [gender, setGender] = useState<string>('');  // 選択された性別
+    const [ageRange, setAgeRange] = useState<[number, number]>([20, 70]);  // 年齢範囲
+    const [heightRange, setHeightRange] = useState<[number, number]>([140, 200]);  // 身長範囲（cm）
+    const [weightRange, setWeightRange] = useState<[number, number]>([40, 120]);   // 体重範囲（kg）
+    const [startDate, setStartDate] = useState<string>('');  // 開始日
+    const [endDate, setEndDate] = useState<string>('');      // 終了日
 
-    // Set default end date to today
+    // 今日の日付をデフォルトの終了日として設定
     const defaultEndDate = new Date().toISOString().split('T')[0];
 
-    // Set end date to today if not already set
+    /**
+     * コンポーネントマウント時に終了日を今日に設定
+     */
     useEffect(() => {
         if (!endDate) {
             setEndDate(defaultEndDate);
         }
     }, []);
 
-    // Min and max values for sliders
+    // スライダーのための最小・最大値設定
     const ageMin = 20;
     const ageMax = 70;
     const heightMin = 140;
@@ -40,40 +55,63 @@ const FilterControls = ({ employees, onFilterChange }: FilterControlsProps) => {
     const weightMin = 40;
     const weightMax = 120;
 
+    /**
+     * 年齢範囲の最小値変更ハンドラ
+     */
     const handleAgeMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = parseInt(e.target.value);
         setAgeRange([value, ageRange[1]]);
     };
 
+    /**
+     * 年齢範囲の最大値変更ハンドラ
+     */
     const handleAgeMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = parseInt(e.target.value);
         setAgeRange([ageRange[0], value]);
     };
 
+    /**
+     * 身長範囲の最小値変更ハンドラ
+     */
     const handleHeightMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = parseInt(e.target.value);
         setHeightRange([value, heightRange[1]]);
     };
 
+    /**
+     * 身長範囲の最大値変更ハンドラ
+     */
     const handleHeightMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = parseInt(e.target.value);
         setHeightRange([heightRange[0], value]);
     };
 
+    /**
+     * 体重範囲の最小値変更ハンドラ
+     */
     const handleWeightMinChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = parseInt(e.target.value);
         setWeightRange([value, weightRange[1]]);
     };
 
+    /**
+     * 体重範囲の最大値変更ハンドラ
+     */
     const handleWeightMaxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const value = parseInt(e.target.value);
         setWeightRange([weightRange[0], value]);
     };
 
+    /**
+     * フィルター適用ボタン押下時のハンドラ
+     * すべてのフィルター条件を親コンポーネントに通知
+     */
     const handleFilterChange = () => {
-        // For logging purposes
-        console.log("Applying filters with date range:", startDate ? [startDate, endDate || defaultEndDate] : undefined);
+        // デバッグ用ログ
+        console.log("フィルターを適用、日付範囲:", startDate ? [startDate, endDate || defaultEndDate] : undefined);
 
+        // 親コンポーネントに現在のフィルター設定を通知
         onFilterChange({
             gender: gender || undefined,
             ageRange: ageRange,
@@ -87,7 +125,7 @@ const FilterControls = ({ employees, onFilterChange }: FilterControlsProps) => {
         <div className="bg-white p-4 rounded-lg shadow mb-6">
             <h3 className="text-lg font-semibold mb-3 text-black">Filter Options</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                {/* Gender Filter */}
+                {/* 性別フィルター */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Gender
@@ -104,7 +142,7 @@ const FilterControls = ({ employees, onFilterChange }: FilterControlsProps) => {
                     </select>
                 </div>
 
-                {/* Age Filter */}
+                {/* 年齢範囲フィルター */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Age Range: {ageRange[0]}-{ageRange[1]}
@@ -129,7 +167,7 @@ const FilterControls = ({ employees, onFilterChange }: FilterControlsProps) => {
                     </div>
                 </div>
 
-                {/* Height Filter */}
+                {/* 身長範囲フィルター */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Height Range (cm): {heightRange[0]}-{heightRange[1]}
@@ -154,7 +192,7 @@ const FilterControls = ({ employees, onFilterChange }: FilterControlsProps) => {
                     </div>
                 </div>
 
-                {/* Weight Filter */}
+                {/* 体重範囲フィルター */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Weight Range (kg): {weightRange[0]}-{weightRange[1]}
@@ -179,7 +217,7 @@ const FilterControls = ({ employees, onFilterChange }: FilterControlsProps) => {
                     </div>
                 </div>
 
-                {/* Date Range Filter */}
+                {/* 日付範囲フィルター - 開始日 */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         Start Date
@@ -192,6 +230,7 @@ const FilterControls = ({ employees, onFilterChange }: FilterControlsProps) => {
                     />
                 </div>
 
+                {/* 日付範囲フィルター - 終了日 */}
                 <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">
                         End Date
@@ -204,6 +243,7 @@ const FilterControls = ({ employees, onFilterChange }: FilterControlsProps) => {
                     />
                 </div>
 
+                {/* フィルター適用ボタン */}
                 <div className="lg:col-span-2 flex items-end">
                     <button
                         onClick={handleFilterChange}

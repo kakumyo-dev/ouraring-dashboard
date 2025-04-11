@@ -7,8 +7,8 @@ const TabNavigator = () => {
     const pathname = usePathname();
 
     const tabs = [
-        { name: 'All Employees', href: '/' },
-        { name: 'Individual Employees', href: '/individual' }
+        { name: 'Sleep Dashboard by date', href: '/' },
+        { name: 'Sleep Dashboard by employee', href: '/individual' }
     ];
 
     return (

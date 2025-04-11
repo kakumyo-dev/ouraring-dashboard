@@ -157,7 +157,7 @@ const SleepBoxPlotChart = ({ data, title }: SleepBoxPlotChartProps) => {
 
     return (
         <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-lg font-semibold mb-4 text-black">{title}</h3>
+            <h3 className="text-lg font-semibold mb-4 text-black">{title} (Showing {data.length} days)</h3>
             <div className="h-80">
                 <ResponsiveContainer width="100%" height="100%">
                     <ComposedChart
